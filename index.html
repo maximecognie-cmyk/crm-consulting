@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM Consulting</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f5f4f0;color:#1a1a1a;font-size:14px}
+.header{background:#fff;border-bottom:1px solid #e5e3db;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.header h1{font-size:16px;font-weight:600}
+.tabs{display:flex;gap:6px}
+.tab{padding:6px 14px;border-radius:6px;border:1px solid #ddd;background:transparent;font-size:13px;cursor:pointer;color:#555}
+.tab.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.btn-add{padding:7px 14px;border-radius:6px;border:1px solid #ddd;background:#fff;font-size:13px;cursor:pointer;font-weight:500}
+.btn-add:hover{background:#f0f0f0}
+.main{padding:16px 20px}
+.stats{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.stat{background:#fff;border-radius:8px;padding:12px 16px;flex:1;min-width:130px;border:1px solid #e5e3db}
+.stat-label{font-size:11px;color:#888;margin-bottom:4px}
+.stat-value{font-size:20px;font-weight:600}
+.stat-sub{font-size:11px;color:#aaa;margin-top:2px}
+.view{display:none}
+.view.active{display:block}
+.pipeline-wrap{overflow-x:auto;padding-bottom:8px}
+.pipeline{display:flex;gap:10px;min-width:900px}
+.lane{flex:1;background:#efefed;border-radius:10px;padding:10px 8px;min-width:130px}
+.lane-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px}
+.lane-count{font-size:11px;color:#888;margin-bottom:8px}
+.card{background:#fff;border:1px solid #e5e3db;border-radius:8px;padding:9px 10px;margin-bottom:7px;cursor:pointer;transition:box-shadow .15s}
+.card:hover{box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.card-top{display:flex;align-items:center;gap:7px;margin-bottom:4px}
+.avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+.card-name{font-size:12px;font-weight:500}
+.card-company{font-size:11px;color:#888}
+.card-val{font-size:11px;color:#555}
+.card-action{font-size:11px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-date{font-size:10px;margin-top:3px}
+.overdue{border-color:#fca5a5!important}
+.date-overdue{color:#dc2626}
+.date-today{color:#d97706}
+.filter-bar{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.filter-btn{padding:4px 10px;border-radius:6px;border:1px solid #ddd;background:transparent;font-size:12px;cursor:pointer;color:#555}
+.filter-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.list-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;border:1px solid #e5e3db;margin-bottom:6px;cursor:pointer;background:#fff}
+.list-item:hover{background:#fafaf8}
+.list-info{flex:1;min-width:0}
+.list-name{font-size:13px;font-weight:500}
+.list-sub{font-size:11px;color:#aaa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-right{display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.badge{font-size:11px;font-weight:500;padding:2px 8px;border-radius:5px}
+.fiche-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:640px){.fiche-grid{grid-template-columns:1fr}}
+.panel{background:#fff;border:1px solid #e5e3db;border-radius:10px;padding:16px}
+.panel h3{font-size:13px;font-weight:600;margin-bottom:12px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+label{font-size:12px;color:#666;margin-bottom:3px;display:block}
+input,select,textarea{width:100%;padding:7px 10px;border-radius:6px;border:1px solid #ddd;font-size:13px;background:#fff;color:#1a1a1a;margin-bottom:10px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:#888}
+textarea{height:72px;resize:vertical}
+.btn-save{width:100%;padding:8px;border-radius:6px;border:none;background:#1a1a1a;color:#fff;font-size:13px;cursor:pointer;font-weight:500;margin-bottom:6px}
+.btn-save:hover{background:#333}
+.btn-del{width:100%;padding:7px;border-radius:6px;border:1px solid #fca5a5;background:none;color:#dc2626;font-size:13px;cursor:pointer}
+.log-row{display:flex;gap:8px;margin-bottom:12px}
+.log-row input{margin-bottom:0;flex:1}
+.btn-log{padding:7px 12px;border-radius:6px;border:1px solid #ddd;background:#f5f4f0;cursor:pointer;font-size:15px}
+.log-entry{border-left:2px solid #e5e3db;padding-left:10px;margin-bottom:10px}
+.log-date{font-size:10px;color:#aaa}
+.log-text{font-size:13px;margin-top:2px}
+.back-btn{font-size:12px;color:#888;background:none;border:none;cursor:pointer;margin-bottom:12px;padding:0}
+.back-btn:hover{color:#333}
+.empty{color:#bbb;font-size:13px;padding:20px 0}
+.toast{position:fixed;bottom:20px;right:20px;background:#1a1a1a;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:100}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>CRM Consulting</h1>
+  <div style="display:flex;gap:10px;align-items:center">
+    <div class="tabs">
+      <button class="tab active" onclick="showView('pipeline')">Pipeline</button>
+      <button class="tab" onclick="showView('list')">Liste</button>
+    </div>
+    <button class="btn-add" onclick="newContact()">+ Nouveau contact</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="stats" id="stats"></div>
+
+  <div class="view active" id="v-pipeline">
+    <div class="pipeline-wrap">
+      <div class="pipeline" id="pipeline-board"></div>
+    </div>
+  </div>
+
+  <div class="view" id="v-list">
+    <div class="filter-bar" id="filter-bar"></div>
+    <div id="list-body"></div>
+  </div>
+
+  <div class="view" id="v-fiche">
+    <button class="back-btn" onclick="showView('list')">← Retour à la liste</button>
+    <div class="fiche-grid">
+      <div class="panel">
+        <h3>Informations du contact</h3>
+        <div class="form-grid">
+          <div><label>Nom</label><input id="f-nom" placeholder="Nom complet"></div>
+          <div><label>Entreprise</label><input id="f-entreprise" placeholder="Société"></div>
+          <div><label>Email</label><input id="f-email" type="email" placeholder="email@..."></div>
+          <div><label>Téléphone</label><input id="f-telephone" placeholder="+33..."></div>
+        </div>
+        <label>Secteur</label>
+        <select id="f-secteur">
+          <option>Industrie</option><option>Retail</option><option>Santé</option>
+          <option>Finance</option><option selected>Services</option><option>Autre</option>
+        </select>
+        <label>Statut pipeline</label>
+        <select id="f-statut">
+          <option>Prospect</option><option>Contacté</option><option>RDV planifié</option>
+          <option>Proposition envoyée</option><option>Négociation</option>
+          <option>Gagné</option><option>Perdu</option>
+        </select>
+        <label>Valeur du deal (€)</label>
+        <input id="f-valeur" type="number" placeholder="0">
+        <label>Prochaine action</label>
+        <input id="f-action" placeholder="Ex : Envoyer la proposition">
+        <label>Date de relance</label>
+        <input id="f-relance" type="date">
+        <label>Notes</label>
+        <textarea id="f-notes" placeholder="Notes libres…"></textarea>
+        <button class="btn-save" onclick="saveContact()">Enregistrer</button>
+        <button class="btn-del" onclick="deleteContact()">Supprimer ce contact</button>
+      </div>
+      <div class="panel">
+        <h3>Historique des interactions</h3>
+        <div class="log-row">
+          <input id="log-input" placeholder="Ajouter une interaction…" onkeydown="if(event.key==='Enter')addLog()">
+          <button class="btn-log" onclick="addLog()">+</button>
+        </div>
+        <div id="log-body"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STAGES=["Prospect","Contacté","RDV planifié","Proposition envoyée","Négociation","Gagné","Perdu"];
+const COLORS={"Prospect":"#6b7280","Contacté":"#2563eb","RDV planifié":"#16a34a","Proposition envoyée":"#d97706","Négociation":"#ea580c","Gagné":"#059669","Perdu":"#dc2626"};
+const AVG_BG=["#ede9fe","#d1fae5","#fef3c7","#dbeafe","#fce7f3","#fee2e2"];
+const AVG_FG=["#5b21b6","#065f46","#92400e","#1e40af","#9d174d","#991b1b"];
+const KEY="crm_consulting_v1";
+
+let data=[];
+let currentId=null;
+let filterStage="Tous";
+
+function load(){try{data=JSON.parse(localStorage.getItem(KEY))||[];}catch{data=[];}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch{}}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function initials(n){return(n||"?").trim().split(/\s+/).map(w=>w[0]||"").join("").toUpperCase().slice(0,2)||"?";}
+function fmtDate(d){if(!d)return"";const dt=new Date(d+"T00:00:00");return dt.toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"2-digit"});}
+function isOverdue(d){if(!d)return false;return new Date(d+"T00:00:00")<new Date(new Date().toDateString());}
+function isToday(d){if(!d)return false;return new Date(d+"T00:00:00").toDateString()===new Date().toDateString();}
+
+function toast(msg){const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2000);}
+
+function showView(v){
+  document.querySelectorAll(".view").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));
+  document.getElementById("v-"+v).classList.add("active");
+  if(v==="pipeline"){document.querySelectorAll(".tab")[0].classList.add("active");renderPipeline();}
+  if(v==="list"){document.querySelectorAll(".tab")[1].classList.add("active");renderList();}
+  renderStats();
+}
+
+function renderStats(){
+  const active=data.filter(c=>!["Gagné","Perdu"].includes(c.statut));
+  const pipeline=active.reduce((s,c)=>s+(parseFloat(c.valeur)||0),0);
+  const gagnes=data.filter(c=>c.statut==="Gagné");
+  const won=gagnes.reduce((s,c)=>s+(parseFloat(c.valeur)||0),0);
+  const today=data.filter(c=>isToday(c.dateRelance)&&!["Gagné","Perdu"].includes(c.statut));
+  const late=data.filter(c=>isOverdue(c.dateRelance)&&!["Gagné","Perdu"].includes(c.statut));
+  document.getElementById("stats").innerHTML=`
+    <div class="stat"><div class="stat-label">Pipeline actif</div><div class="stat-value">${pipeline.toLocaleString("fr-FR")} €</div><div class="stat-sub">${active.length} contact(s)</div></div>
+    <div class="stat"><div class="stat-label">Deals gagnés</div><div class="stat-value" style="color:#059669">${won.toLocaleString("fr-FR")} €</div><div class="stat-sub">${gagnes.length} client(s)</div></div>
+    <div class="stat"><div class="stat-label">Relances aujourd'hui</div><div class="stat-value" style="color:${today.length?"#d97706":"#1a1a1a"}">${today.length}</div></div>
+    <div class="stat"><div class="stat-label">Relances en retard</div><div class="stat-value" style="color:${late.length?"#dc2626":"#1a1a1a"}">${late.length}</div></div>
+  `;
+}
+
+function renderPipeline(){
+  const board=document.getElementById("pipeline-board");
+  board.innerHTML="";
+  STAGES.filter(s=>s!=="Perdu").forEach(stage=>{
+    const cards=data.filter(c=>c.statut===stage);
+    const tot=cards.reduce((s,c)=>s+(parseFloat(c.valeur)||0),0);
+    const lane=document.createElement("div");
+    lane.className="lane";
+    lane.innerHTML=`<div class="lane-title" style="color:${COLORS[stage]}">${stage}</div><div class="lane-count">${cards.length} · ${tot.toLocaleString("fr-FR")} €</div>`;
+    cards.forEach((c,i)=>{
+      const av=i%AVG_BG.length;
+      const od=isOverdue(c.dateRelance);
+      const tod=isToday(c.dateRelance);
+      const card=document.createElement("div");
+      card.className="card"+(od?" overdue":"");
+      card.innerHTML=`
+        <div class="card-top">
+          <div class="avatar" style="background:${AVG_BG[av]};color:${AVG_FG[av]}">${initials(c.nom)}</div>
+          <div><div class="card-name">${c.nom||"Sans nom"}</div><div class="card-company">${c.entreprise||""}</div></div>
+        </div>
+        ${c.valeur?`<div class="card-val">${parseFloat(c.valeur).toLocaleString("fr-FR")} €</div>`:""}
+        ${c.prochaineAction?`<div class="card-action">→ ${c.prochaineAction}</div>`:""}
+        ${c.dateRelance?`<div class="card-date ${od?"date-overdue":tod?"date-today":""}">${od?"⚠ ":tod?"● ":""}${fmtDate(c.dateRelance)}</div>`:""}
+      `;
+      card.onclick=()=>openFiche(c.id);
+      lane.appendChild(card);
+    });
+    board.appendChild(lane);
+  });
+}
+
+function renderList(){
+  const fb=document.getElementById("filter-bar");
+  fb.innerHTML="";
+  ["Tous",...STAGES].forEach(s=>{
+    const b=document.createElement("button");
+    b.className="filter-btn"+(filterStage===s?" active":"");
+    b.textContent=s;
+    b.style.color=filterStage===s?"#fff":(COLORS[s]||"#555");
+    b.onclick=()=>{filterStage=s;renderList();};
+    fb.appendChild(b);
+  });
+  const lb=document.getElementById("list-body");
+  const filtered=filterStage==="Tous"?data:data.filter(c=>c.statut===filterStage);
+  if(!filtered.length){lb.innerHTML='<div class="empty">Aucun contact.</div>';return;}
+  lb.innerHTML="";
+  filtered.forEach((c,i)=>{
+    const av=i%AVG_BG.length;
+    const od=isOverdue(c.dateRelance)&&!["Gagné","Perdu"].includes(c.statut);
+    const el=document.createElement("div");
+    el.className="list-item";
+    el.innerHTML=`
+      <div class="avatar" style="background:${AVG_BG[av]};color:${AVG_FG[av]};width:36px;height:36px;font-size:12px">${initials(c.nom)}</div>
+      <div class="list-info">
+        <div class="list-name">${c.nom||"Sans nom"}${c.entreprise?` <span style="font-weight:400;color:#888">· ${c.entreprise}</span>`:""}</div>
+        <div class="list-sub">${c.prochaineAction||c.email||""}</div>
+      </div>
+      <div class="list-right">
+        <span class="badge" style="background:${COLORS[c.statut]}22;color:${COLORS[c.statut]}">${c.statut}</span>
+        ${c.valeur?`<span style="font-size:11px;color:#888">${parseFloat(c.valeur).toLocaleString("fr-FR")} €</span>`:""}
+        ${c.dateRelance?`<span style="font-size:10px;color:${od?"#dc2626":"#aaa"}">${od?"⚠ ":""}${fmtDate(c.dateRelance)}</span>`:""}
+      </div>
+    `;
+    el.onclick=()=>openFiche(c.id);
+    lb.appendChild(el);
+  });
+}
+
+function openFiche(id){
+  currentId=id;
+  const c=data.find(x=>x.id===id)||{};
+  document.getElementById("f-nom").value=c.nom||"";
+  document.getElementById("f-entreprise").value=c.entreprise||"";
+  document.getElementById("f-email").value=c.email||"";
+  document.getElementById("f-telephone").value=c.telephone||"";
+  document.getElementById("f-secteur").value=c.secteur||"Services";
+  document.getElementById("f-statut").value=c.statut||"Prospect";
+  document.getElementById("f-valeur").value=c.valeur||"";
+  document.getElementById("f-action").value=c.prochaineAction||"";
+  document.getElementById("f-relance").value=c.dateRelance||"";
+  document.getElementById("f-notes").value=c.notes||"";
+  renderLog(c.historique||[]);
+  document.querySelectorAll(".view").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(el=>el.classList.remove("active"));
+  document.getElementById("v-fiche").classList.add("active");
+}
+
+function renderLog(hist){
+  const lb=document.getElementById("log-body");
+  if(!hist.length){lb.innerHTML='<div style="color:#bbb;font-size:12px">Aucun historique.</div>';return;}
+  lb.innerHTML=hist.map(h=>`
+    <div class="log-entry">
+      <div class="log-date">${new Date(h.date).toLocaleDateString("fr-FR",{day:"2-digit",month:"2-digit",year:"2-digit",hour:"2-digit",minute:"2-digit"})}</div>
+      <div class="log-text">${h.texte}</div>
+    </div>
+  `).join("");
+}
+
+function saveContact(){
+  const idx=data.findIndex(x=>x.id===currentId);
+  const prev=idx>=0?data[idx]:null;
+  const newStatut=document.getElementById("f-statut").value;
+  const hist=prev?[...(prev.historique||[])]:[];
+  if(prev&&prev.statut!==newStatut)hist.unshift({date:new Date().toISOString(),texte:`Statut changé → ${newStatut}`});
+  const c={
+    id:currentId||uid(),
+    nom:document.getElementById("f-nom").value,
+    entreprise:document.getElementById("f-entreprise").value,
+    email:document.getElementById("f-email").value,
+    telephone:document.getElementById("f-telephone").value,
+    secteur:document.getElementById("f-secteur").value,
+    statut:newStatut,
+    valeur:document.getElementById("f-valeur").value,
+    prochaineAction:document.getElementById("f-action").value,
+    dateRelance:document.getElementById("f-relance").value,
+    notes:document.getElementById("f-notes").value,
+    historique:hist
+  };
+  if(idx>=0)data[idx]=c;else{data.unshift(c);currentId=c.id;}
+  persist();
+  renderStats();
+  renderLog(c.historique);
+  toast("Contact enregistré ✓");
+}
+
+function deleteContact(){
+  if(!confirm("Supprimer ce contact définitivement ?"))return;
+  data=data.filter(x=>x.id!==currentId);
+  persist();
+  renderStats();
+  showView("list");
+  toast("Contact supprimé");
+}
+
+function newContact(){
+  const id=uid();
+  data.unshift({id,nom:"",entreprise:"",email:"",telephone:"",secteur:"Services",statut:"Prospect",valeur:"",prochaineAction:"",dateRelance:"",notes:"",historique:[]});
+  persist();
+  openFiche(id);
+}
+
+function addLog(){
+  const inp=document.getElementById("log-input");
+  const txt=inp.value.trim();
+  if(!txt)return;
+  const idx=data.findIndex(x=>x.id===currentId);
+  if(idx<0)return;
+  data[idx].historique=[{date:new Date().toISOString(),texte:txt},...(data[idx].historique||[])];
+  inp.value="";
+  persist();
+  renderLog(data[idx].historique);
+  toast("Interaction ajoutée ✓");
+}
+
+load();
+renderStats();
+renderPipeline();
+</script>
+</body>
+</html>
